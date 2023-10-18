@@ -41,7 +41,10 @@ end
 
 local myPlayer = player:new()
 
-function love.keypressed(key, scancode)
+[[Will love.keypressed() fire every frame as long as it's held down or only on the first frame it's pressed?
+Also, would it make more sense to check for user input in the Update function so that it runs those checks every frame?]]
+
+function love.keypressed(key, scancode) 
 	if key == "a" then
 		myPlayer:moveX(0)
 	end
@@ -74,12 +77,19 @@ screenHeight = 500
 
 -- Load graphics on screen
 function love.load()
-	p1 = love.graphics.newImage("player.png")
+	p1 = love.graphics.newImage("player.png") -- I assume this is just placeholder text for when we have the file and directory
 	myPlayer.x = (screenWidth * myPlayer.x) / 100
 	myPlayer.y = (screenHeight * myPlayer.y) / 100
 	love.window.setMode(screenWidth, screenHeight)
 	myPlayer.yStartJump = myPlayer.y
 end
+
+[[In the Update function, it's often best to avoid directly setting a variable like myPlayer.x because Update runs every frame.
+This can cause the program to set a value for that frame before input is received in love.keypressed() and love.keyreleased().
+Instead, it may be better to check for user input with if statements in Update(), then call the separate MoveX() and Jump() functions
+which handle the movement. In my experience with Unity, Update() is mostly used for checking input and checking states, then calling
+other functions to do what you want based on the results of those checks. The logic for setting variables and values should probably
+be in separate functions. Again, love2D may handle this entirely differently though.]]
 
 function love.update()
 	myPlayer.x = myPlayer.x + myPlayer.xSpeed
@@ -91,7 +101,7 @@ function love.update()
 	end
 	if myPlayer.jumping and myPlayer.y < myPlayer.yStartJump - myPlayer.apex then
 		myPlayer.yDirection = 0
-		myPlayer.falling = true
+		myPlayer.falling = true -- I don't see this variable defined in the player:new() function
 		myPlayer.jumping = false
 	end
 	if myPlayer.falling and myPlayer.y == myPlayer.yStartJump then
