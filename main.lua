@@ -7,34 +7,30 @@ function player:new()
 	self.xSpeed = 0
 	self.ySpeed = 0
 	self.airborne = false
-	self.apex = 15
-	self.direction = 0
+	self.apex = 150
+	self.xDirection = 0
 	self.dead = false
 	self.idle = false
+	self.jumping = false
+	self.yStartJump = 0
+	self.yDirection = 0
 	return self
 end
 
 function player:jump()
-	local yStart = self.y
 	self.airborne = true
+	self.jumping = true
 	self.ySpeed = 3
-	while self.ySpeed ~= 0 do
-		if self.y == self.apex then
-			self.ySpeed = -3
-		end
-		if self.y == yStart then
-			self.airborne = false
-			self.ySpeed = 0
-		end
-	end
+	self.yStartJump = self.y
+	self.yDirection = 1
 end
 
 function player:moveX(direction)
-	self.direction = direction
-	if self.direction == 0 then
+	self.xDirection = direction
+	if self.xDirection == 0 then
 		self.xSpeed = -5
 	end
-	if self.direction == 1 then
+	if self.xDirection == 1 then
 		self.xSpeed = 5
 	end
 end
@@ -52,8 +48,8 @@ function love.keypressed(key, scancode)
 	if key == "d" then
 		myPlayer:moveX(1)
 	end
-	if key == "space" or key == "w" then
-		myPlayer:jump()
+	if key == "q" then
+		love.event.quit()
 	end
 end
 
@@ -68,9 +64,41 @@ function love.keyreleased(key)
 			myPlayer:stopMovingX()
 		end
 	end
+	if key == "space" then
+		myPlayer:jump()
+	end
 end
 
--- Load player onto screen
--- function love.load()
--- 	player = love.graphics.newImage("")
--- end
+screenWidth = 500
+screenHeight = 500
+
+-- Load graphics on screen
+function love.load()
+	p1 = love.graphics.newImage("player.png")
+	myPlayer.x = (screenWidth * myPlayer.x) / 100
+	myPlayer.y = (screenHeight * myPlayer.y) / 100
+	love.window.setMode(screenWidth, screenHeight)
+	myPlayer.yStartJump = myPlayer.y
+end
+
+function love.update()
+	myPlayer.x = myPlayer.x + myPlayer.xSpeed
+	if myPlayer.yDirection == 1 then
+		myPlayer.y = myPlayer.y - myPlayer.ySpeed
+	end
+	if myPlayer.yDirection == 0 then
+		myPlayer.y = myPlayer.y + myPlayer.ySpeed
+	end
+	if myPlayer.jumping and myPlayer.y < myPlayer.yStartJump - myPlayer.apex then
+		myPlayer.yDirection = 0
+		myPlayer.falling = true
+		myPlayer.jumping = false
+	end
+	if myPlayer.falling and myPlayer.y == myPlayer.yStartJump then
+		myPlayer.ySpeed = 0
+	end
+end
+
+function love.draw()
+	love.graphics.draw(p1, myPlayer.x, myPlayer.y)
+end
